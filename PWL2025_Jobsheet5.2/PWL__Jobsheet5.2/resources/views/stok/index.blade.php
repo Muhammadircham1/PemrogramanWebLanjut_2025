@@ -74,7 +74,7 @@
                         searchable: false
                     },
                     {
-                        data: "barang.barang_nama", // Mengambil nama barang dari relasi
+                        data: "barang.nama_barang", // Mengambil nama barang dari relasi
                         className: "",
                         orderable: true,
                         searchable: true

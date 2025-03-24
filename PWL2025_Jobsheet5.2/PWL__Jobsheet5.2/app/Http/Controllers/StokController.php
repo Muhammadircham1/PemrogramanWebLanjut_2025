@@ -25,20 +25,24 @@ class StokController extends Controller
 
         return view('stok.index', compact('breadcrumb', 'page', 'barang', 'activeMenu'));
     }
-
     public function list(Request $request)
     {
-        $stok = Stok::with('barang', 'user')->select('stok.*'); 
+        $stok = StokModel::select('stok_id', 'barang_id', 'jumlah', 'keterangan')
+            ->with(['barang']);
+    
+        if ($request->barang_id) {
+            $stok->where('barang_id', $request->barang_id);
+        }
     
         return DataTables::of($stok)
-            ->addColumn('barang_nama', function ($row) {
-                return $row->barang ? $row->barang->barang_nama : '-';
-            })
-            ->addColumn('user_nama', function ($row) {
-                return $row->user ? $row->user->nama : '-';
-            })
-            ->addColumn('aksi', function ($row) {
-                return '<a href="'.url('stok/'.$row->stok_id).'" class="btn btn-sm btn-info">Detail</a>';
+            ->addIndexColumn()
+            ->addColumn('aksi', function ($stok) {
+                $btn = '<a href="'.url('/stok/' . $stok->stok_id).'" class="btn btn-info btn-sm">Detail</a> ';
+                $btn .= '<a href="'.url('/stok/' . $stok->stok_id . '/edit').'" class="btn btn-warning btn-sm">Edit</a> ';
+                $btn .= '<form class="d-inline-block" method="POST" action="'. url('/stok/'.$stok->stok_id).'">'
+                    . csrf_field() . method_field('DELETE') .
+                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
+                return $btn;
             })
             ->rawColumns(['aksi'])
             ->make(true);

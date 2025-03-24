@@ -12,7 +12,7 @@ class StokModel extends Model
 
     protected $table = 't_stok'; // Sesuai nama tabel di database
     protected $primaryKey = 'stok_id'; // Primary key tabel
-    protected $fillable = ['barang_id', 'jumlah', 'keterangan', 'created_at', 'updated_at']; // Sesuaikan dengan tabel
+    protected $fillable = ['barang_id', 'jumlah', 'keterangan',  ]; // Sesuaikan dengan tabel
 
     public function barang(): BelongsTo
     {
