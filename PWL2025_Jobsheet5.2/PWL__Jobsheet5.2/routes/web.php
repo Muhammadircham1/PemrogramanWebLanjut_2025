@@ -1,11 +1,16 @@
 <?php
 
-
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LevelController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\StokController;
 use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WelcomeController;
+use Illuminate\Support\Facades\Route;
+
 
 
 Route::get('/', [HomeController::class, 'home']) -> name('home');
@@ -22,19 +27,19 @@ Route::get('/', function () {
     
 });
 
-Route::get('/Level', [LevelController::class, 'index']);
+Route::get('/level', [LevelController::class, 'index']);
 Route::get('/Kategori', [KategoriController::class, 'index']);
-Route::get('/User', [UserController::class, 'index']);
-Route::get('/User/tambah', [UserController::class, 'tambah']);
-Route::post('/User/tambah_simpan', [UserController::class, 'tambah_simpan']); 
-Route::get('/User/Ubah/{id}', [UserController::class, 'ubah']);
-Route::put('/User/Ubah_simpan/{id}', [UserController::class, 'ubah_simpan']);
-Route::get('/User/Hapus/{id}', [UserController::class, "hapus"]);
+Route::get('/user', [UserController::class, 'index']);
+Route::get('/user/tambah', [UserController::class, 'tambah']);
+Route::post('/user/tambah_simpan', [UserController::class, 'tambah_simpan']); 
+Route::get('/user/Ubah/{id}', [UserController::class, 'ubah']);
+Route::put('/user/Ubah_simpan/{id}', [UserController::class, 'ubah_simpan']);
+Route::get('/user/Hapus/{id}', [UserController::class, "hapus"]);
 
 // JS5.2
 Route::get('/', [WelcomeController::class, 'index']);
-Route::post('/User/list', [UserController::class, 'list'])->name('user.list');
-Route::get('/User/create', [UserController::class, 'create'])->name('user.create');
+Route::post('/user/list', [UserController::class, 'list'])->name('user.list');
+Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
 
 
 Route::group(['prefix' => 'user'], function () {
@@ -48,3 +53,47 @@ Route::group(['prefix' => 'user'], function () {
     Route::delete('/{id}', [UserController::class, 'destroy']);// menghapus data user
 });
 
+Route::group(['prefix' => 'level'], function () {
+    Route::get('/', [LevelController::class, 'index']);       
+    Route::post('/list', [LevelController::class, 'list']);    
+    Route::get('/create', [LevelController::class, 'create']); 
+    Route::post('/', [LevelController::class, 'store']);   
+    Route::get('/{id}', [LevelController::class, 'show']);     
+    Route::get('/{id}/edit', [LevelController::class, 'edit']);
+    Route::put('/{id}', [LevelController::class, 'update']);   
+    Route::delete('/{id}', [LevelController::class, 'destroy']);
+});
+
+Route::group(['prefix' => 'kategori'], function () {
+    Route::get('/', [KategoriController::class, 'index']);       
+    Route::post('/list', [KategoriController::class, 'list']);    
+    Route::get('/create', [KategoriController::class, 'create']); 
+    Route::post('/', [KategoriController::class, 'store']);   
+    Route::get('/{id}', [KategoriController::class, 'show']);     
+    Route::get('/{id}/edit', [KategoriController::class, 'edit']);
+    Route::put('/{id}', [KategoriController::class, 'update']);   
+    Route::delete('/{id}', [KategoriController::class, 'destroy']);
+});
+
+Route::group(['prefix' => 'stok'], function () {
+    Route::get('/', [StokController::class, 'index']);       
+    Route::post('/list', [StokController::class, 'list']);    
+    
+    Route::get('/create', [StokController::class, 'create']); 
+    Route::post('/', [StokController::class, 'store']);   
+    Route::get('/{id}', [StokController::class, 'show']);     
+    Route::get('/{id}/edit', [StokController::class, 'edit']);
+    Route::put('/{id}', [StokController::class, 'update']);   
+    Route::delete('/{id}', [StokController::class, 'destroy']);
+});
+
+Route::group(['prefix' => 'barang'], function () {
+    Route::get('/', [BarangController::class, 'index']);       
+    Route::post('/list', [BarangController::class, 'list']);    
+    Route::get('/create', [BarangController::class, 'create']); 
+    Route::post('/', [BarangController::class, 'store']);   
+    Route::get('/{id}', [BarangController::class, 'show']);     
+    Route::get('/{id}/edit', [BarangController::class, 'edit']);
+    Route::put('/{id}', [BarangController::class, 'update']);   
+    Route::delete('/{id}', [BarangController::class, 'destroy']);
+});
