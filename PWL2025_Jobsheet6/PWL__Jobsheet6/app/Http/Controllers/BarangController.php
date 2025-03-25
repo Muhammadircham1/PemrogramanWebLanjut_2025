@@ -31,7 +31,7 @@ class BarangController extends Controller
 
     public function list(Request $request)
     {
-        $barang = BarangModel::select('barang_id', 'nama_barang', 'harga', 'stok', 'created_at', 'updated_at');
+        $barang = BarangModel::select('barang_id', 'nama_barang', 'harga', 'stok');
 
         return DataTables::of($barang)
             ->addIndexColumn()

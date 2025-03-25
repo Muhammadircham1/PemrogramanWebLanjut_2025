@@ -17,12 +17,8 @@ class BarangModel extends Model
         'nama_barang', 
         'harga', 
         'stok', 
-        'created_at', 
-        'updated_at'
+      
     ];
 
-    public function kategori(): Belongsto
-    {
-        return $this->belongsTo(KategoriModel::class, 'kategori_id', 'kategori_id');
-    }
+    
 }
