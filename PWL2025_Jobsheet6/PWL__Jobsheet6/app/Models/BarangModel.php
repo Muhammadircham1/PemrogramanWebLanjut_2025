@@ -21,7 +21,7 @@ class BarangModel extends Model
         'updated_at'
     ];
 
-    public function kategori()
+    public function kategori(): Belongsto
     {
         return $this->belongsTo(KategoriModel::class, 'kategori_id', 'kategori_id');
     }

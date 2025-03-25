@@ -28,15 +28,22 @@
                 </thead>
             </table>
         </div>
-    </div> 
-@endsection
+        <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data- backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true"></div>  
+
+    @endsection
 
 @push('css') 
 @endpush
 
 @push('js')
     <script>
-        $(document).ready(function() {
+          function modalAction(url = ''){
+            $('#myModal').load(url,function(){
+                $('#myModal').modal('show');
+            });
+        }
+       var dataUser;
+      $(document).ready(function() {
             var dataUser = $('#table_level').DataTable
             ({
                 // serverSide: true, jika ingin menggunakan server side processing 

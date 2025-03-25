@@ -21,8 +21,5 @@ class KategoriModel extends Model
         'updated_at'
     ];
 
-    public function barang(): HasMany
-    {
-        return $this->hasMany(BarangModel::class, 'kategori_id', 'kategori_id');
-    }
+ 
 }
