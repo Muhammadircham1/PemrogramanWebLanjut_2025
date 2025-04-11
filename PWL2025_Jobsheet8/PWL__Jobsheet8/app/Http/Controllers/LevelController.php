@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class LevelController extends Controller
@@ -228,6 +229,68 @@ class LevelController extends Controller
             }
         }
         return redirect('/');
+    }
+
+    public function export_excel()
+    {
+        $level = LevelModel::select('level_kode', 'level_nama')
+                           ->orderBy('level_kode')
+                           ->get();
+        
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet(); 
+    
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Kode Level');
+        $sheet->setCellValue('C1', 'Nama Level');
+    
+        $sheet->getStyle('A1:C1')->getFont()->setBold(true); 
+    
+        $no = 1; 
+        $baris = 2; 
+        foreach ($level as $key => $value) {
+            $sheet->setCellValue('A'.$baris, $no);
+            $sheet->setCellValue('B'.$baris, $value->level_kode);
+            $sheet->setCellValue('C'.$baris, $value->level_nama);
+            $baris++;
+            $no++;
+        }
+        
+        foreach (range('A', 'C') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);        
+        }
+    
+        $sheet->setTitle('Data Level'); 
+    
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data Level '.date('Y-m-d H:i:s').'.xlsx';
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="'.$filename.'"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+        
+        $writer->save('php://output');
+        exit;    
+    }
+
+    public function export_pdf()
+    {
+        $level = LevelModel::select('level_kode', 'level_nama')
+                    ->orderBy('level_kode')
+                    ->get();
+
+        // use Barryvdh\DomPDF\Facade\Pdf;
+        $pdf = Pdf::loadView('level.export_pdf', ['level' => $level]);
+        $pdf->setPaper('a4', 'portrait'); 
+        $pdf->setOption("isRemoteEnabled", true);
+        $pdf->render();
+
+        return $pdf->stream('Data Level '.date('Y-m-d H:i:s').'.pdf');
     }
 }
 

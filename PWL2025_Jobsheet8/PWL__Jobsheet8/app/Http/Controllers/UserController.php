@@ -9,7 +9,8 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
@@ -500,11 +501,11 @@ class UserController extends Controller
                 foreach ($data as $baris => $value) {
                     if($baris > 1){                                 // baris ke 1 adalah header, maka lewati
                         $insert[] = [
-                            	 'level_id' => $value['A'], 
-                        	                            'username' => $value['B'], 
-                            	                            'nama'  => $value['C'], 
-                                                        'password'  => $value['D'], 
-                        	                            'created_at'  => now(),
+                            	'level_id' => $value['A'], 
+                        	    'username' => $value['B'], 
+                            	'nama'  => $value['C'], 
+                                'password'  => bcrypt($value['D']), 
+                        	    'created_at'  => now(),
                             
                         ];
                     }
@@ -527,5 +528,135 @@ class UserController extends Controller
             }
         }
         return redirect('/');
+    }
+
+    public function export_excel()
+    {
+        $user = UserModel::select('level_id', 'username', 'nama', 'password')
+                         ->orderBy('level_id')
+                         ->with('level')
+                         ->get();
+        
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet(); 
+    
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Username');
+        $sheet->setCellValue('C1', 'Nama');
+        $sheet->setCellValue('D1', 'Password');
+        $sheet->setCellValue('E1', 'Level Pengguna');
+    
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true); 
+    
+        $no = 1; 
+        $baris = 2; 
+        foreach ($user as $key => $value) {
+            $sheet->setCellValue('A'.$baris, $no);
+            $sheet->setCellValue('B'.$baris, $value->username);
+            $sheet->setCellValue('C'.$baris, $value->nama);
+            $sheet->setCellValue('D'.$baris, $value->password); 
+            $sheet->setCellValue('E'.$baris, $value->level->level_nama); 
+            $baris++;
+            $no++;
+        }
+        
+        foreach (range('A', 'E') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);          
+        }
+    
+        $sheet->setTitle('Data User'); 
+    
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data User '.date('Y-m-d H:i:s').'.xlsx';
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="'.$filename.'"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+        
+        $writer->save('php://output');
+        exit;    
+    }
+
+    public function export_pdf()
+    {
+        $user = UserModel::select('level_id', 'username', 'nama', 'password')
+                         ->orderBy('level_id')
+                         ->with('level')
+                         ->get();
+    
+        // use Barryvdh\DomPDF\Facade\Pdf;
+        $pdf = Pdf::loadView('user.export_pdf', ['user' => $user]);
+        $pdf->setPaper('a4', 'portrait'); 
+        $pdf->setOption("isRemoteEnabled", true);
+        $pdf->render();
+    
+        return $pdf->stream('Data User'.date('Y-m-d H:i:s').'.pdf');
+    }
+
+    public function profile() 
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect('/login')->with('error', 'Silahkan login terlebih dahulu');
+        }
+
+        $breadcrumb = (object) [
+            'title' => 'Profile User',
+            'list' => ['Home', 'Profile']
+        ];
+
+        $page = (object) [
+            'title' => 'Profil Pengguna'
+        ];
+
+        $activeMenu = 'profile';
+
+        return view('user.photo_profile', compact('user', 'breadcrumb', 'page', 'activeMenu'));
+    }
+
+    public function update_photo(Request $request)
+    {
+        // Validasi file
+        $request->validate([
+            'photo_profile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                return redirect('/login')->with('error', 'Silahkan login terlebih dahulu');
+            }
+
+            $userId = $user->user_id;
+
+            $userModel = UserModel::find($userId);
+
+            if (!$userModel) {
+                return redirect('/login')->with('error', 'User tidak ditemukan');
+            }
+
+            // Menghapus foto jika sudah ada
+            if ($userModel->photo_profile && file_exists(storage_path('app/public/' . $userModel->photo_profile))) {
+                Storage::disk('public')->delete($userModel->photo_profile);
+            }
+
+            $fileName = 'profile_' . $userId . '_' . time() . '.' . $request->photo_profile->extension();
+            $path = $request->photo_profile->storeAs('profiles', $fileName, 'public');
+
+            UserModel::where('user_id', $userId)->update([
+                'photo_profile' => $path
+            ]);
+
+            return redirect()->back()->with('success', 'Foto profile berhasil diperbarui');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengupload foto: ' . $e->getMessage());
+        }
     }
 }

@@ -7,6 +7,7 @@ use App\Models\BarangModel;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class BarangController extends Controller
@@ -325,5 +326,74 @@ class BarangController extends Controller
             }
         }
         return redirect('/');
+    }
+
+    public function export_excel()
+    {
+        // Ambil data barang yang akan di-export
+        $barang = BarangModel::select('nama_barang', 'harga', 'stok')
+                             ->orderBy('nama_barang')
+                             ->get();
+        
+        // Load library excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet(); // Ambil sheet yang aktif
+    
+        // Set header kolom
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Nama Barang');
+        $sheet->setCellValue('C1', 'Harga');
+        $sheet->setCellValue('D1', 'Stok');
+    
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true); // Bold header
+    
+        $no = 1; // Nomor data dimulai dari 1
+        $baris = 2; // Baris data dimulai dari baris ke-2
+        foreach ($barang as $key => $value) {
+            $sheet->setCellValue('A' . $baris, $no);
+            $sheet->setCellValue('B' . $baris, $value->nama_barang);
+            $sheet->setCellValue('C' . $baris, $value->harga);
+            $sheet->setCellValue('D' . $baris, $value->stok);
+            $baris++;
+            $no++;
+        }
+        
+        // Set autosize untuk kolom
+        foreach (range('A', 'D') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+    
+        $sheet->setTitle('Data Barang'); // Set title sheet
+    
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data Barang ' . date('Y-m-d H:i:s') . '.xlsx';
+        
+        // Set header untuk download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+        
+        $writer->save('php://output');
+        exit;    
+    }
+
+    public function export_pdf()
+    {
+        $barang = BarangModel::select('nama_barang', 'harga', 'stok')
+                             ->orderBy('nama_barang')
+                             ->get();
+        
+        // use Barryvdh\DomPDF\Facade\Pdf;
+        $pdf = Pdf::loadView('barang.export_pdf', ['barang' => $barang]);
+        $pdf->setPaper('a4', 'portrait'); // Set ukuran kertas dan orientasi
+        $pdf->setOption("isRemoteEnabled", true); // Set true jika ada gambar dari url
+        $pdf->render();
+        
+        return $pdf->stream('Data Barang ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }
