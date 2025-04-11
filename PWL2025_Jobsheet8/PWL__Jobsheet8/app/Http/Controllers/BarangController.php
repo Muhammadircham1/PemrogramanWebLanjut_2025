@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\BarangModel;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 
 class BarangController extends Controller
 {
@@ -298,10 +300,9 @@ class BarangController extends Controller
                 foreach ($data as $baris => $value) {
                     if($baris > 1){                                 // baris ke 1 adalah header, maka lewati
                         $insert[] = [
-                            'barang_id' => $value['A'], 
-                            'nama_barang' => $value['B'], 
-                            'harga' => $value['C'], 
-                            'stok'  => $value['D'], 
+                            'nama_barang' => $value['A'], 
+                            'harga' => $value['B'], 
+                            'stok'  => $value['C'], 
                             'created_at'  => now(),
                         ];
                     }
