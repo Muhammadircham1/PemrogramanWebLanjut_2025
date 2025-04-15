@@ -21,6 +21,20 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
 
+  <style>
+
+    /* Warna latar dan ikon saat aktif */
+    .nav-sidebar .nav-link.active {
+    background-color: #dc3545 !important; /* merah */
+    color: #fff !important;
+  }
+
+  .nav-sidebar .nav-link.active i {
+    color: #fff !important;
+  }
+  
+</style>
+
   @stack('css') <!-- Digunakan untuk memanggil custom css dari perintah push('css') pada masing-masing view -->
 </head>
 <body class="hold-transition sidebar-mini">
@@ -34,8 +48,8 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="{{ url('/') }}" class="brand-link">
-      <img src="{{ asset('adminlte/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">PWL - Starter Code</span>
+      <img src="{{ asset('image/emyu.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+      <span class="brand-text font-weight-light">UTS POS</span>
     </a>
 
     <!-- Sidebar -->
